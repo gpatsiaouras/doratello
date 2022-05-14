@@ -1,3 +1,4 @@
+import os
 import socket
 import threading
 import time
@@ -10,10 +11,10 @@ from tools import add_stats_to_frame
 
 STATS_PORT = 8890
 COMMANDS_PORT = 8889
-
+PICTURES_FOLDER = "pictures/"
 
 class Tello:
-    def __init__(self, te_ip: str = '192.168.10.1', debug: bool = True, send_command=True):
+    def __init__(self, te_ip: str = '192.168.10.1', debug: bool = False, send_command=True):
         self.local_ip = ''
         self.local_port = COMMANDS_PORT
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -58,7 +59,7 @@ class Tello:
             'roll': 0
         }
 
-        self.MAX_TIME_OUT = 5.0
+        self.MAX_TIME_OUT = 0.5
         self.debug = debug
         if send_command:
             self.command()
@@ -76,13 +77,14 @@ class Tello:
             print('Send Command: {}'.format(command))
         self.socket.sendto(command.encode('utf-8'), self.te_address)
 
-        # start = time.time()
-        # while not self.log[-1].got_response():
-        #     now = time.time()
-        #     difference = now - start
-        #     if difference > self.MAX_TIME_OUT:
-        #         print('Connect Time Out!')
-        #         break
+        if query:
+            start = time.time()
+            while not self.log[-1].got_response():
+                now = time.time()
+                difference = now - start
+                if difference > self.MAX_TIME_OUT:
+                    print('Connect Time Out!')
+                    break
 
         # if self.debug is True and query is False:
         #     print('Response: {}\n'.format(self.log[-1].get_response()))
@@ -108,7 +110,6 @@ class Tello:
 
     def get_video_capture(self):
         return cv2.VideoCapture('udp://' + self.te_ip + ':11111')
-        # return cv2.VideoCapture(0)
 
     def _video_handler(self):
         cap = self.get_video_capture()
@@ -116,20 +117,22 @@ class Tello:
         while self.is_streaming:
             ret, frame = cap.read()
 
+            if self.should_take_picture:
+                self.save_frame(frame)
+
             # Add stats to the frame
             frame = add_stats_to_frame(self.stats, frame)
 
             # Save frame
             self.last_video_frame = frame
 
-            if self.should_take_picture:
-                self.save_frame(frame)
-
         cap.release()
 
     def save_frame(self, frame):
         png_name = datetime.now().strftime('%Y%m%d_%H%M%S') + '.png'
-        cv2.imwrite(png_name, frame)
+        if not os.path.isdir(PICTURES_FOLDER):
+            os.mkdir(PICTURES_FOLDER)
+        cv2.imwrite(os.path.join(PICTURES_FOLDER, png_name), frame)
         self.should_take_picture = False
 
     def get_log(self):

@@ -85,3 +85,5 @@ no-commit/
 output/
 venv/
 .idea/
+pictures/
+videos/
