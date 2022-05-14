@@ -5,7 +5,7 @@ from sdk import Tello
 from tools import Joystick, PDController, Recorder, add_navigation_info_to_frame
 
 # Constants
-VIDEO_WIDTH = 1024
+VIDEO_WIDTH = 960
 VIDEO_HEIGHT = 720
 
 
@@ -23,17 +23,26 @@ class Main:
         self.pitch_pd = PDController(VIDEO_WIDTH // 5)
 
     def manual_control(self):
+        recorder = Recorder()
         try:
             while True:
                 self.joy.read()
+                if self.tello.is_streaming and self.tello.last_video_frame is not None:
+                    recorder.write(self.tello.last_video_frame)
+                    cv2.imshow('Tello manual control', self.tello.last_video_frame)
+                    k = cv2.waitKey(1) & 0xFF
+                    if k == 27:
+                        break
                 self.joy.clock.tick(30)
+
+            cv2.destroyAllWindows()
         except KeyboardInterrupt:
             self.tello.emergency()
 
     def follow_face(self):
+        face_recognizer = FeatureCascadeDetector()
+        recorder = Recorder()
         try:
-            face_recognizer = FeatureCascadeDetector()
-            recorder = Recorder()
             while True:
                 self.joy.read()
                 if self.tello.is_streaming and self.tello.last_video_frame is not None:
@@ -85,5 +94,5 @@ class Main:
 
 if __name__ == '__main__':
     main = Main()
-    main.follow_face()
-    # main.manual_control()
+    # main.follow_face()
+    main.manual_control()
