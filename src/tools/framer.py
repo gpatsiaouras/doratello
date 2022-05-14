@@ -53,6 +53,15 @@ def add_stats_to_frame(stats: Stats, frame):
                 font_scale,
                 FONT_COLOR_WHITE,
                 line_type)
+
+    # Display warning in the middle of the screen
+    if stats.get_bat() < 20:
+        cv2.putText(frame, 'LOW BATTERY',
+                    (370, 300),
+                    font,
+                    font_scale,
+                    FONT_COLOR_RED,
+                    line_type)
     return frame
 
 
