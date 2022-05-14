@@ -10,6 +10,8 @@ class FeatureCascadeDetector(FaceDetector):
         super().__init__()
         # Find the haarcascade_frontalface_default.xml inside the installation of opencv
         cv2_base_dir = os.path.dirname(os.path.abspath(cv2.__file__))
+        # haar_model = os.path.join(cv2_base_dir, 'data/haarcascade_profileface.xml')
+        # haar_model = os.path.join(cv2_base_dir, 'data/haarcascade_frontalface_alt_tree.xml')
         haar_model = os.path.join(cv2_base_dir, 'data/haarcascade_frontalface_default.xml')
 
         self.detector = cv2.CascadeClassifier(haar_model)
@@ -17,4 +19,4 @@ class FeatureCascadeDetector(FaceDetector):
     def detect(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        return self.detector.detectMultiScale(gray, 1.1, 4)
+        return self.detector.detectMultiScale(gray, 1.05, 5)
