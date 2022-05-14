@@ -6,23 +6,30 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 font_scale = 1
 FONT_COLOR_WHITE = (255, 255, 255)
 FONT_COLOR_RED = (0, 0, 255)
+FONT_COLOR_BLUE = (255, 0, 0)
 line_type = 2
 
 
 def add_stats_to_frame(stats: Stats, frame):
-    cv2.putText(frame, 'Flight time: %d' % stats.get_tof(),
+    """
+    Prints statistics coming from the stats udp port of the tello
+    :param stats: Stats
+    :param frame: cv2.Frame
+    :return: frame
+    """
+    cv2.putText(frame, 'TOF: %d cm' % stats.get_tof(),
                 (10, 500),
                 font,
                 font_scale,
                 FONT_COLOR_WHITE,
                 line_type)
-    cv2.putText(frame, 'Time: %d s' % stats.get_time(),
+    cv2.putText(frame, 'Flight time: %d s' % stats.get_time(),
                 (10, 540),
                 font,
                 font_scale,
                 FONT_COLOR_WHITE,
                 line_type)
-    cv2.putText(frame, 'Barometer: %.1f' % stats.get_baro(),
+    cv2.putText(frame, 'Barometer: %.1f cm' % stats.get_baro(),
                 (10, 580),
                 font,
                 font_scale,
@@ -50,6 +57,13 @@ def add_stats_to_frame(stats: Stats, frame):
 
 
 def add_navigation_info_to_frame(info, frame):
+    """
+    Used when flying autonomously. Prints debug information of the PD reactions plus the tag to know
+    if the drone is flying autonomously
+    :param info: {}
+    :param frame: cv2.Frame
+    :return: frame:
+    """
     if info['autonomous_flight']:
         cv2.putText(frame, 'Autonomous Flight',
                     (10, 30),
@@ -81,5 +95,30 @@ def add_navigation_info_to_frame(info, frame):
                 font_scale,
                 FONT_COLOR_WHITE,
                 line_type)
+
+    return frame
+
+
+def add_actions_info_to_frame(info, frame):
+    """
+    Prints actions like if a video is being recorded or if the user took a picture.
+    :param info:
+    :param frame: cv2.Frame
+    :return: frame
+    """
+    if info['is_recording']:
+        cv2.putText(frame, 'Recording...',
+                    (10, 30),
+                    font,
+                    font_scale,
+                    FONT_COLOR_RED,
+                    line_type)
+    if info['took_picture']:
+        cv2.putText(frame, 'Took picture',
+                    (740, 30),
+                    font,
+                    font_scale,
+                    FONT_COLOR_WHITE,
+                    line_type)
 
     return frame

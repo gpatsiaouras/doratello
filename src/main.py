@@ -23,12 +23,10 @@ class Main:
         self.pitch_pd = PDController(VIDEO_WIDTH // 5)
 
     def manual_control(self):
-        recorder = Recorder()
         try:
             while True:
                 self.joy.read()
                 if self.tello.is_streaming and self.tello.last_video_frame is not None:
-                    recorder.write(self.tello.last_video_frame)
                     cv2.imshow('Tello manual control', self.tello.last_video_frame)
                     k = cv2.waitKey(1) & 0xFF
                     if k == 27:

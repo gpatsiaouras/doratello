@@ -6,12 +6,15 @@ from datetime import datetime
 
 import cv2
 
-from tools.stats import Stats
-from tools import add_stats_to_frame
+from tools import Recorder
+from tools import Stats
+from tools import add_stats_to_frame, add_actions_info_to_frame
 
 STATS_PORT = 8890
 COMMANDS_PORT = 8889
 PICTURES_FOLDER = "pictures/"
+SHOW_MESSAGE_SEC = 2
+
 
 class Tello:
     def __init__(self, te_ip: str = '192.168.10.1', debug: bool = False, send_command=True):
@@ -44,11 +47,13 @@ class Tello:
         # Video
         self.video_thread = None
         self.last_video_frame = None
+        self.recorder = None
 
         # State
         self.is_streaming = False
         self.is_flying = True
         self.should_take_picture = False
+        self.last_picture_taken_at = None
         self.autonomous_flight = False
 
         # Velocity values
@@ -118,10 +123,24 @@ class Tello:
             ret, frame = cap.read()
 
             if self.should_take_picture:
+                self.last_picture_taken_at = time.time()
                 self.save_frame(frame)
+
+            # Helps show the message to the user that a picture was taken
+            if self.last_picture_taken_at and time.time() > self.last_picture_taken_at + SHOW_MESSAGE_SEC:
+                self.last_picture_taken_at = None
+
+            if self.recorder:
+                self.recorder.write(frame)
 
             # Add stats to the frame
             frame = add_stats_to_frame(self.stats, frame)
+
+            # Add other info
+            frame = add_actions_info_to_frame({
+                "is_recording": True if self.recorder is not None else False,
+                "took_picture": True if self.last_picture_taken_at is not None else False,
+            }, frame)
 
             # Save frame
             self.last_video_frame = frame
@@ -140,6 +159,17 @@ class Tello:
 
     def take_picture(self):
         self.should_take_picture = True
+
+    def record_video(self):
+        """
+        If recorder exists it means that we have to stop recording
+        else we have to start recording into a new file (new recorder instance)
+        :return:
+        """
+        if not self.recorder:
+            self.recorder = Recorder()
+        else:
+            self.recorder = None
 
     def command(self):
         self.send_command('command')

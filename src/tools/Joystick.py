@@ -5,7 +5,12 @@ import pygame
 
 class Joystick:
     def __init__(self, tello):
-        # Init pygame
+        """
+        Controller of tello, the buttons and axes mapping comes from a different file depending on the controller
+        you are using. If you want to create a different mapping for another controller just make a new file
+        and import BUTTONS and AXES
+        :param tello:
+        """
         pygame.init()
         self.clock = pygame.time.Clock()
         pygame.joystick.init()
@@ -13,7 +18,6 @@ class Joystick:
         self.joy.init()
         self.tello = tello
 
-        # Physical controller
         self.joy_previous_values = {
             'A': 0,
             'B': 0,
@@ -51,15 +55,10 @@ class Joystick:
         }
 
         if self.button_pressed('A'):
-            if self.tello.is_flying:
-                self.tello.land()
-            else:
-                self.tello.takeoff()
+            self.tello.record_video()
         elif self.button_pressed('B'):
             print('Took picture')
             self.tello.take_picture()
-        elif self.button_pressed('B'):
-            self.tello.set_speed(100)
         elif self.button_pressed('G'):
             print('Emergency')
             self.tello.emergency()
@@ -70,11 +69,10 @@ class Joystick:
             self.tello.autonomous_flight = not self.tello.autonomous_flight
             print('Autonomous flight: ' + str(self.tello.autonomous_flight))
         elif self.button_pressed('C'):
-            print('Half speed')
-            self.tello.set_speed(50)
-        elif self.button_pressed('D'):
-            print('Full speed')
-            self.tello.set_speed(100)
+            if self.tello.is_flying:
+                self.tello.land()
+            else:
+                self.tello.takeoff()
 
         if not self.tello.autonomous_flight and self.tello.is_flying:
             self.tello.rc_control(self.values['RX'], self.values['RY'], self.values['LY'], self.values['LX'])
