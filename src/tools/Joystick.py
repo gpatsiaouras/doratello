@@ -1,4 +1,4 @@
-from controllers.ps3_sixaxis import BUTTONS, AXES
+from controllers.xbox_one import BUTTONS, AXES
 
 import pygame
 
@@ -17,6 +17,8 @@ class Joystick:
         self.joy_previous_values = {
             'A': 0,
             'B': 0,
+            'C': 0,
+            'D': 0,
             'E': 0,
             'G': 0,
             'H': 0,
@@ -36,6 +38,8 @@ class Joystick:
         self.values = {
             'A': self.joy.get_button(BUTTONS['A']),
             'B': self.joy.get_button(BUTTONS['B']),
+            'C': self.joy.get_button(BUTTONS['C']),
+            'D': self.joy.get_button(BUTTONS['D']),
             'E': self.joy.get_button(BUTTONS['E']),
             'G': self.joy.get_button(BUTTONS['G']),
             'H': self.joy.get_button(BUTTONS['H']),
@@ -65,6 +69,12 @@ class Joystick:
         elif self.button_pressed('I'):
             self.tello.autonomous_flight = not self.tello.autonomous_flight
             print('Autonomous flight: ' + str(self.tello.autonomous_flight))
+        elif self.button_pressed('C'):
+            print('Half speed')
+            self.tello.set_speed(50)
+        elif self.button_pressed('D'):
+            print('Full speed')
+            self.tello.set_speed(100)
 
         if not self.tello.autonomous_flight and self.tello.is_flying:
             self.tello.rc_control(self.values['RX'], self.values['RY'], self.values['LY'], self.values['LX'])
