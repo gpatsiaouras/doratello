@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 from datetime import datetime
+from tools import SoundPlayer
 
 import cv2
 
@@ -14,6 +15,7 @@ STATS_PORT = 8890
 COMMANDS_PORT = 8889
 PICTURES_FOLDER = "pictures/"
 SHOW_MESSAGE_SEC = 2
+LOW_BATTERY_WARNING_PERCENT = 85
 
 
 class Tello:
@@ -55,6 +57,9 @@ class Tello:
         self.should_take_picture = False
         self.last_picture_taken_at = None
         self.autonomous_flight = False
+
+        # Sounds
+        self.sound_player = SoundPlayer()
 
         # Velocity values
         self.values = {
@@ -100,6 +105,8 @@ class Tello:
             try:
                 received, ip = self.stats_socket.recvfrom(1024)
                 self.stats.parse(received)
+                if self.stats.get_bat() < LOW_BATTERY_WARNING_PERCENT:
+                    self.sound_player.play_low_bat()
             except socket.error as exc:
                 print('Error: {}'.format(exc))
 
